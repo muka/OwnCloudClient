@@ -29,73 +29,85 @@ namespace muka\OwnCloud;
 class Client {
 
     private $client;
-    private $https;
-    private $allowInsecureCert = false;
-    private $baseUrl;
+    private $settings;
+
+    private $basePath = "/remote.php/webdav";
 
     public function __construct($url, $user, $password, $allowInsecureCert = false) {
 
-        // enforce https (?)
-        $this->https = true;
-        if(substr($url, 0, 5) != "https") {
-            $this->https = false;
-//            throw new Exception\ClientException;
-        }
+        $this->settings = array(
+            'baseUri' => substr($url, -1) == '/' ? substr($url, 0, -1) : $url,
+            'userName' => $user,
+            'password' => $password,
+        //    'proxy' => 'locahost:8888',
+        );
 
-        $this->allowInsecureCert = $allowInsecureCert;
-        $this->baseUrl = 'http' . ($this->https ? 's' : '') . "://$user:$password@". substr($url, ($this->https ? 8 : 7)); // :p
+        $this->client = new \Sabre\DAV\Client($this->settings);
 
-        $this->client = new \PestJSON($this->baseUrl);
-        $this->setClientOptions($this->client);
-    }
-
-
-    protected function setClientOptions(\Pest $client) {
-
-        $client->curl_opts[CURLOPT_SSL_VERIFYPEER] = $this->allowInsecureCert ? false : true;
-        // good for dev, but HOST should be kept
-        $client->curl_opts[CURLOPT_SSL_VERIFYHOST] = $this->allowInsecureCert ? false : true;
-
-        // Not supported on hosts running safe_mode!
-        $client->curl_opts[CURLOPT_FOLLOWLOCATION] = true;
-
+        $this->client->addCurlSetting(CURLOPT_SSL_VERIFYPEER, $allowInsecureCert);
+        $this->client->addCurlSetting(CURLOPT_SSL_VERIFYHOST, $allowInsecureCert);
     }
 
     protected function request() {
 
         $args = func_get_args();
-        $result = call_user_func_array([$this->client, array_shift($args)], $args);
 
-        if($result && isset($result['status'])) {
-            if($result['status'] == 'error') {
-                throw new Exception\ClientException($result['data']['message']);
-            }
+        try {
+            $result = call_user_func_array([$this->client, "request"], $args);
+        } catch(\Exception $e) {
+            var_dump($e);
         }
 
         return $result;
     }
 
-    public function listResources($dir = "/", $html = false) {
-        $url = $html ? "apps/files/ajax/list.php" : "apps/files/ajax/rawlist.php";
-        return $this->request("get", $url, compact("dir"));
-    }
+    public function getResources($dir = "/", $options = null, $depth = 1) {
 
-    public function download($files) {
+        $options = is_null($options) ? [
+//            "{DAV:}supported-live-property-set",
+//            "{DAV:}supported-method-set"
+        ] : $options;
 
-        // use base Pest class instead of JSON extension,
-        // otherwise will return null response
-        $client = new \Pest($this->baseUrl);
-        $this->setClientOptions($client);
+        $response = $this->client->propFind($this->basePath.$dir, $options, $depth);
 
-        $url = "apps/files/ajax/download.php";
+        $list = [];
+        foreach($response as $path => $item) {
 
-        if(!is_array($files)) {
-            $files = [$files];
+            $prop = new \stdClass();
+
+//            $prop->realPath = $path;
+//            $prop->__srcItem = $item;
+
+            $prop->raw = $item;
+            $prop->path = str_replace($this->basePath, "", $path);
+
+            foreach($item as $key => $val) {
+                $subkey = explode('}', $key);
+                switch($subkey[1]) {
+                    case "id":
+                        $prop->id = $val;
+                        break;
+                    case "getetag":
+                        $prop->eTag = $val;
+                        break;
+                    case "getcontenttype":
+                        $prop->contentType = $val;
+                        $prop->type = "file";
+                        break;
+                    case "getlastmodified":
+                        $prop->lastModified = strtotime($val);
+                        break;
+                }
+            }
+
+            $list[$path] = $prop;
         }
 
-        $files = json_encode($files);
-//        die($files);
-        return $client->get($url, compact("files"));
+        return $list;
+    }
+
+    public function download($file) {
+        return $this->client->request('GET', $file);
     }
 
 }
