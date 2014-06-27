@@ -31,6 +31,11 @@ Can be a single file or an array
 $ocClient->download([ "/my/path/to/data.txt", "/my//open/data.csv", ]);
 ```
 
+##Test
+
+Use `phpunit` to run tests.
+
+Notice that you have to create a `./tests/config.json` first, an example is available in `./tests/config.json.dist`
 
 ##License
 

@@ -29,18 +29,21 @@ namespace muka\OwnCloud;
 class Client {
 
     private $client;
+    private $https;
     private $allowInsecureCert = false;
     private $baseUrl;
 
     public function __construct($url, $user, $password, $allowInsecureCert = false) {
 
-        // enforce https
+        // enforce https (?)
+        $this->https = true;
         if(substr($url, 0, 5) != "https") {
-            throw new Exception\ClientException;
+            $this->https = false;
+//            throw new Exception\ClientException;
         }
 
         $this->allowInsecureCert = $allowInsecureCert;
-        $this->baseUrl = "https://$user:$password@". substr($url, 8);
+        $this->baseUrl = 'http' . ($this->https ? 's' : '') . "://$user:$password@". substr($url, ($this->https ? 8 : 7)); // :p
 
         $this->client = new \PestJSON($this->baseUrl);
         $this->setClientOptions($this->client);
@@ -49,9 +52,9 @@ class Client {
 
     protected function setClientOptions(\Pest $client) {
 
-        $client->curl_opts[CURLOPT_SSL_VERIFYPEER] = $this->allowInsecureCert;
+        $client->curl_opts[CURLOPT_SSL_VERIFYPEER] = $this->allowInsecureCert ? false : true;
         // good for dev, but HOST should be kept
-        $client->curl_opts[CURLOPT_SSL_VERIFYHOST] = $this->allowInsecureCert;
+        $client->curl_opts[CURLOPT_SSL_VERIFYHOST] = $this->allowInsecureCert ? false : true;
 
         // Not supported on hosts running safe_mode!
         $client->curl_opts[CURLOPT_FOLLOWLOCATION] = true;
