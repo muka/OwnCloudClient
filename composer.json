@@ -1,0 +1,22 @@
+{
+    "name": "muka/OwnCloudClient",
+    "description": "Simple PHP Client for OwnCloud",
+    "keywords": ["owncloud", "client"],
+    "license": "MIT",
+    "authors": [
+        {"name": "Luca Capra", "email": "luca.capra@gmail.com" }
+    ],
+    "require": {
+        "educoder/pest": "1.*"
+    },
+    "autoload": {
+        "psr-0": {
+            "": "src/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "0.1-dev"
+        }
+    }
+}
