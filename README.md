@@ -1,7 +1,6 @@
 #OwnCloud Client
 
-A minimal client to retrieve data from an OwnCloud instance
-
+A minimal PHP client to retrieve data from an OwnCloud instance
 
 ##Installation
 
@@ -20,22 +19,32 @@ $ocClient = new \muka\OwnCloud\Client($url = "https://owncloud.example.com", $us
 *List Resources*
 
 ```php
-$list = $ocClient->listResources($baseDir = "/", $getAsHtml = false);
+$list = $ocClient->listResources($dir = "/");
 ```
 
 *Download a file*
 
-Can be a single file or an array
-
 ```php
-$ocClient->download([ "/my/path/to/data.txt", "/my//open/data.csv", ]);
+// $ocClient->download("/my/open/data.csv");
+$ocClient->download($listItem->path);
 ```
+
+##Examples
+
+Some example code is available in `./examples`
+
+- `php ./examples/ListResources.php <path>` Shows the tree for a specified path.
+
 
 ##Test
 
 Use `phpunit` to run tests.
 
 Notice that you have to create a `./tests/config.json` first, an example is available in `./tests/config.json.dist`
+
+##Credits
+
+This library is mostly a wrapper around the excellent [fruux/sabre-dav](https://github.com/fruux/sabre-dav) library set.
 
 ##License
 

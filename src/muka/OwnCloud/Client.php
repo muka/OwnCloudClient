@@ -61,7 +61,7 @@ class Client {
         return $result;
     }
 
-    public function getResources($dir = "/", $options = null, $depth = 1) {
+    public function listResources($dir = "/", $options = null, $depth = 1) {
 
         $options = is_null($options) ? [
 //            "{DAV:}supported-live-property-set",
@@ -80,6 +80,7 @@ class Client {
 
             $prop->raw = $item;
             $prop->path = str_replace($this->basePath, "", $path);
+            $prop->type = "dir";
 
             foreach($item as $key => $val) {
                 $subkey = explode('}', $key);
@@ -109,5 +110,7 @@ class Client {
     public function download($file) {
         return $this->client->request('GET', $file);
     }
+
+
 
 }
