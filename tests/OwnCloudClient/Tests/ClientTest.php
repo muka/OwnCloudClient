@@ -42,7 +42,7 @@ class ClientTest extends \PHPUnit_Framework_TestCase {
     {
         if(!$this->client) {
             $config = json_decode(file_get_contents($this->config));
-            $this->client = new \muka\OwnCloud\Client($config->url, $config->username, $config->password, 2);
+            $this->client = new \muka\OwnCloud\Client($config->url, $config->username, $config->password, true);
         }
     }
 
