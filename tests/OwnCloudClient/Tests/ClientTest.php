@@ -42,26 +42,26 @@ class ClientTest extends \PHPUnit_Framework_TestCase {
     {
         if(!$this->client) {
             $config = json_decode(file_get_contents($this->config));
-            $this->client = new \muka\OwnCloud\Client($config->url, $config->username, $config->password, true);
+            $this->client = new \muka\OwnCloud\Client($config->url, $config->username, $config->password, 2);
         }
     }
 
     public function testListResources() {
         $list = $this->client->listResources("/");
-        $this->assertEquals($list['status'], "success");
+        $this->assertTrue(is_array($list));
     }
 
     public function testDownload() {
         if($list = $this->client->listResources("/")) {
 
-            if(!$list || $list['status'] != "success") {
+            if(!$list) {
                 throw new \Exception;
             }
 
-            foreach ($list['data'] as $key => $resource) {
-                if($resource['type'] == 'file') {
-                    $file = $this->client->download($resource['directory'].'/'.$resource['path']);
-                    $this->assertNotNull($file);
+            foreach ($list as $resource) {
+                if($resource->type == 'file') {
+                    $content = $this->client->download($resource->path);
+                    $this->assertNotNull($content);
                 }
             }
         }

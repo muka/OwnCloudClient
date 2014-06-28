@@ -9,7 +9,7 @@ class ListResources {
     public function __construct($config) {
 
         extract((array)$config);
-        $this->client = new \muka\OwnCloud\Client($url, $username, $password);
+        $this->client = new \muka\OwnCloud\Client($url, $username, $password, true);
 
     }
 

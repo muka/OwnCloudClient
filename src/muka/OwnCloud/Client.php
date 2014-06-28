@@ -44,8 +44,8 @@ class Client {
 
         $this->client = new \Sabre\DAV\Client($this->settings);
 
-        $this->client->addCurlSetting(CURLOPT_SSL_VERIFYPEER, $allowInsecureCert);
-        $this->client->addCurlSetting(CURLOPT_SSL_VERIFYHOST, $allowInsecureCert);
+        $this->client->addCurlSetting(CURLOPT_SSL_VERIFYPEER, !$allowInsecureCert);
+        $this->client->addCurlSetting(CURLOPT_SSL_VERIFYHOST, !$allowInsecureCert);
     }
 
     protected function request() {
